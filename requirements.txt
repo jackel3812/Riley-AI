@@ -1,2 +1,8 @@
 streamlit
-openai
+gradio
+transformers
+torch
+TTS
+langchain
+langchain_community
+huggingface_hub==0.25.2
