@@ -193,7 +193,7 @@ def demo():
                     msg = gr.Textbox(placeholder="Ask a question", container=True)
                 with gr.Row():
                     submit_btn = gr.Button("Submit")
-                    clear_btn = gr.ClearButton([msg, chatbot], value="Clear")
+                    clear_btn = gr.Button("Clear")
             
         # Preprocessing events
         db_btn.click(initialize_database, \
@@ -215,10 +215,9 @@ def demo():
             inputs=[qa_chain, msg, chatbot], \
             outputs=[qa_chain, msg, chatbot, doc_source1, source1_page, doc_source2, source2_page, doc_source3, source3_page], \
             queue=False)
-        clear_btn.click(lambda:[None,"",0,"",0,"",0], \
-            inputs=None, \
-            outputs=[chatbot, doc_source1, source1_page, doc_source2, source2_page, doc_source3, source3_page], \
-            queue=False)
+        clear_btn.click(lambda: (None, "", None, None, None, None, None), 
+                        inputs=None, 
+                        outputs=[chatbot, msg, doc_source1, source1_page, doc_source2, source2_page, doc_source3, source3_page])
     demo.queue().launch(debug=True)
 
 
@@ -227,7 +226,13 @@ if __name__ == "__main__":
 riley = RileyCore()
 tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=False)
 
+# Ensure the chatbot logic is properly defined within a function
+# Correct the placement of the `chat_interface` function and ensure it is callable
+
 def chat_interface(history, user_input):
+    if "Riley" not in user_input:
+        return history + [{"role": "system", "content": "Riley only responds when her name is mentioned."}], "", None, history
+
     if user_input.startswith("!mode"):
         _, mode = user_input.split()
         return history + [{"role": "system", "content": riley.set_mode(mode)}], "", None, history
@@ -252,29 +257,50 @@ def chat_interface(history, user_input):
 
     return history, "", audio_path, history
 
-css = """
-body { background: #0b0f1e; color: #00ffff; font-family: 'Orbitron', sans-serif; }
+# Correct the CSS and ensure it is applied to the Gradio Blocks interface
+hud_css = '''
+body {
+    background: radial-gradient(ellipse at center, #0f2027 0%, #203a43 50%, #2c5364 100%);
+    font-family: 'Orbitron', sans-serif;
+    color: #00f7ff;
+}
 .gradio-container {
-    border: 2px solid #ffaa00; background: linear-gradient(145deg, #000000, #0c1440);
-    box-shadow: 0 0 25px #ffaa00; padding: 25px; border-radius: 20px;
+    border: 2px solid #00f7ff;
+    border-radius: 15px;
+    background-color: #0c1440;
+    box-shadow: 0 0 30px #00f7ff;
+    padding: 30px;
 }
 button {
-    background-color: #0c1440; color: #ffaa00; border: 2px solid #ffaa00; border-radius: 8px;
+    background-color: #111;
+    color: #00f7ff;
+    border: 1px solid #00f7ff;
+    padding: 10px 20px;
+    border-radius: 8px;
 }
-button:hover { background-color: #ffaa00; color: black; }
+button:hover {
+    background-color: #00f7ff;
+    color: #111;
+}
 .chatbox {
-    background-color: #111; color: #00ffff; border: 1px solid #00ffff; padding: 10px; height: 450px;
+    background-color: #111;
+    border: 1px solid #00f7ff;
+    padding: 15px;
+    color: #00f7ff;
+    height: 500px;
 }
-"""
+'''
 
-with gr.Blocks(css=css) as demo:
-    gr.Markdown("# 🧬 RILEY-AI")
-    gr.Markdown("### Voice Enabled")
+# Apply the updated CSS to the Gradio Blocks interface
+with gr.Blocks(css=hud_css) as demo:
+    gr.Markdown("# 🌌 Riley AI - HUD Terminal")
+    gr.Markdown("#### Type a message or command (e.g., `!mode logic`, `!personality commander`) and mention Riley's name to get a response.")
 
-    chatbot = gr.Chatbot(label="Riley Terminal", elem_classes="chatbox", type='messages')
-    msg = gr.Textbox(label="Ask or command Riley...")
-    audio = gr.Audio(label="Riley’s Voice", interactive=False)
-    clear = gr.Button("Clear Chat")
+    chatbot = gr.Chatbot(label="🧠 Riley Chat", elem_classes="chatbox", type='messages')
+    msg = gr.Textbox(label="Command / Ask Riley...")
+    audio = gr.Audio(label="Riley's Voice Output", interactive=False)
+    clear = gr.Button("🧹 Clear")
+
     state = gr.State([])
 
     msg.submit(chat_interface, [state, msg], [chatbot, msg, audio, state])
@@ -386,7 +412,7 @@ class RileyCore:
 
     def remember(self, thought):
         self.memory.append(thought)
-        if len(self.memory) > 50:
+        if len(self.memory > 50):
             self.memory.pop(0)
 
     def set_mode(self, mode):

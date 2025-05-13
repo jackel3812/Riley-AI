@@ -1,6 +1,11 @@
+import os
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 
-model_id = "microsoft/phi-2"
+# Replace the invalid model ID with a valid one
+default_model_id = "gpt2"
+model_id = os.getenv("MODEL_ID", default_model_id)
+
+# Update the tokenizer and model initialization
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 model = AutoModelForCausalLM.from_pretrained(model_id)
 

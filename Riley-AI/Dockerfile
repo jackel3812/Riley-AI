@@ -1,22 +1,20 @@
-# Use an official Python runtime as a parent image
+# Use the official Python image as the base image
 FROM python:3.11-slim
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the requirements file and install dependencies
+# Copy the requirements file into the container
 COPY requirements.txt ./
+
+# Install the dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the Riley-Agent requirements and install them
-COPY Riley-Agent/requirements.txt ./Riley-Agent-requirements.txt
-RUN pip install --no-cache-dir -r Riley-Agent-requirements.txt
-
-# Copy the application code
+# Copy the rest of the application code into the container
 COPY . .
 
-# Expose the port for the Streamlit app
-EXPOSE 7860
+# Expose the port the app runs on
+EXPOSE 8501
 
-# Command to run the Streamlit app
-CMD ["python3", "streamlit_app.py"]
+# Command to run the application
+CMD ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
