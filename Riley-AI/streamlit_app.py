@@ -364,7 +364,8 @@ with gr.Blocks(css=hud_css) as demo:
     clear.click(lambda: ([], "", None, []), None, [chatbot, msg, audio, state])
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860)import gradio as gr
+    demo.launch(server_name="0.0.0.0", server_port=7860)
+import gradio as gr
 from TTS.api import TTS
 import nltk
 import tempfile
@@ -434,3 +435,50 @@ demo = gr.ChatInterface(
 
 if __name__ == "__main__":
     demo.launch()
+
+# Optimizations for resource-constrained environments
+# 1. Use smaller or quantized models
+from TTS.api import TTS
+
+tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=False, quantized=True)
+
+# 2. Lazy load models to reduce memory usage during initialization
+def get_riley_core():
+    from riley_genesis import RileyCore
+    return RileyCore()
+
+riley = None
+
+def initialize_riley():
+    global riley
+    if riley is None:
+        riley = get_riley_core()
+
+# 3. Reduce maximum token generation
+MAX_TOKENS = 512
+
+# 4. Limit TTS usage for constrained environments
+def respond(user_input, system_prompt, max_tokens=MAX_TOKENS, temperature=0.7, top_p=0.95):
+    initialize_riley()
+    if not user_input.strip():
+        return "Please enter a message.", None
+
+    if user_input.startswith("!mode"):
+        _, mode = user_input.split()
+        return riley.set_mode(mode), None
+
+    if user_input.startswith("!personality"):
+        _, personality = user_input.split()
+        return riley.set_personality(personality), None
+
+    prompt = riley.think(user_input)
+    response = f"Riley: {prompt}"
+    riley.remember(response)
+
+    # Only generate audio if explicitly requested
+    audio_path = None
+    if "!audio" in user_input:
+        audio_path = tempfile.mktemp(suffix=".wav")
+        tts.tts_to_file(text=response, file_path=audio_path)
+
+    return response, audio_path
