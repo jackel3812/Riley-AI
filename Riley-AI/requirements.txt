@@ -2,10 +2,13 @@ gradio==3.23.0
 transformers==4.33.3
 torch>=2.1
 TTS==0.22.0
-tensorflow-cpu==2.12.0
+# Updated tensorflow-cpu version to resolve numpy conflict
+tensorflow-cpu>=2.13.0
 sentencepiece==0.1.98
-numpy==1.23.5
+# Updated numpy version to resolve dependency conflicts
+numpy>=1.24.3
 jax==0.3.15
 protobuf==4.25.7
 wrapt==1.14.1
-keras==2.12.0
+# Updated keras version to align with tensorflow-cpu
+keras>=2.15.0,<2.16

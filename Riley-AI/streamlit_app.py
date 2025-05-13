@@ -482,3 +482,29 @@ def respond(user_input, system_prompt, max_tokens=MAX_TOKENS, temperature=0.7, t
         tts.tts_to_file(text=response, file_path=audio_path)
 
     return response, audio_path
+
+import streamlit as st
+
+# Streamlit App Title and Description
+st.title("Riley-AI: Conversational AI Assistant")
+st.write("Welcome to Riley-AI! Upload documents, ask questions, and interact with advanced AI models.")
+
+# File Upload Section
+uploaded_files = st.file_uploader("Upload your documents (PDFs only):", type="pdf", accept_multiple_files=True)
+
+if uploaded_files:
+    st.write("Processing uploaded documents...")
+    # Call the load_doc function to process uploaded files
+    doc_splits = load_doc([file.name for file in uploaded_files])
+    st.write("Documents processed successfully!")
+
+# User Input Section
+user_input = st.text_input("Ask Riley a question:")
+if st.button("Submit"):
+    if user_input:
+        st.write("Fetching response from Riley...")
+        # Placeholder for AI response logic
+        response = "This is a placeholder response from Riley."
+        st.write(response)
+    else:
+        st.warning("Please enter a question.")
